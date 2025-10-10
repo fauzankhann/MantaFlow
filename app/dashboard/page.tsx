@@ -19,7 +19,7 @@ import {
 import { useSocket } from '@/app/providers'
 import DashboardLayout from '@/components/DashboardLayout'
 import TaskCard from '@/components/TaskCard'
-import AgentStatusCard from '@/components/AgentStatusCard'
+import EnhancedAgentCard from '@/components/EnhancedAgentCard'
 import ActivityFeed from '@/components/ActivityFeed'
 
 // Mock data - replace with real API calls
@@ -87,6 +87,8 @@ const mockAgents = [
     name: 'CodeReview Agent',
     status: 'active',
     currentTask: 'Reviewing authentication module',
+    currentBranch: 'feature/auth-system',
+    repository: 'frontend-app',
     tasksCompleted: 23,
     successRate: 94,
     avgCompletionTime: '12 min'
@@ -96,6 +98,8 @@ const mockAgents = [
     name: 'BugFix Agent',
     status: 'active',
     currentTask: 'Analyzing performance issues',
+    currentBranch: 'hotfix/memory-leak',
+    repository: 'backend-api',
     tasksCompleted: 18,
     successRate: 89,
     avgCompletionTime: '8 min'
@@ -220,6 +224,30 @@ export default function DashboardPage() {
     )
   }
 
+  const handleStartAgent = (agentId: string, task: string) => {
+    setAgents(prev => prev.map(agent => 
+      agent.id === agentId 
+        ? { ...agent, status: 'active', currentTask: task }
+        : agent
+    ))
+  }
+  
+  const handleStopAgent = (agentId: string) => {
+    setAgents(prev => prev.map(agent => 
+      agent.id === agentId 
+        ? { ...agent, status: 'idle', currentTask: null, currentBranch: undefined, repository: undefined }
+        : agent
+    ))
+  }
+  
+  const handleAssignTask = (agentId: string, task: string) => {
+    setAgents(prev => prev.map(agent => 
+      agent.id === agentId 
+        ? { ...agent, currentTask: task }
+        : agent
+    ))
+  }
+
   const stats = {
     totalTasks: tasks.length,
     activeTasks: tasks.filter(t => t.status === 'in_progress').length,
@@ -311,20 +339,44 @@ export default function DashboardPage() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Tasks Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-secondary-900">Recent Tasks</h2>
-              <Link href="/dashboard/tasks" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                View all tasks →
-              </Link>
-            </div>
-            
-            <div className="space-y-4">
-              {tasks.slice(0, 4).map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-            </div>
-          </div>
+<div className="lg:col-span-2 space-y-6">
+  {stats.activeTasks > 0 ? (
+    <>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-secondary-900">Recent Tasks</h2>
+        <Link href="/dashboard/tasks" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+          View all tasks →
+        </Link>
+      </div>
+      
+      <div className="space-y-4">
+        {tasks.slice(0, 4).map((task) => (
+          <TaskCard key={task.id} task={task} />
+        ))}
+      </div>
+    </>
+  ) : (
+    <div className="card text-center py-12">
+      <div className="mx-auto w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+        <PlusIcon className="h-6 w-6 text-primary-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-secondary-900 mb-2">No Active Tasks</h3>
+      <p className="text-secondary-600 mb-6">
+        Get started by connecting your development tools and creating your first task.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Link href="/dashboard/settings" className="btn-primary">
+          <CogIcon className="h-5 w-5 mr-2" />
+          Connect Jira & GitHub
+        </Link>
+        <Link href="/dashboard/tasks/new" className="btn-secondary">
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Create Task
+        </Link>
+      </div>
+    </div>
+  )}
+</div>
 
           {/* Sidebar */}
           <div className="space-y-6">
@@ -332,9 +384,15 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-xl font-semibold text-secondary-900 mb-4">AI Agents</h2>
               <div className="space-y-3">
-                {agents.map((agent) => (
-                  <AgentStatusCard key={agent.id} agent={agent} />
-                ))}
+              {agents.map((agent) => (
+                <EnhancedAgentCard 
+                  key={agent.id} 
+                  agent={agent}
+                  onStartAgent={handleStartAgent}
+                  onStopAgent={handleStopAgent}
+                  onAssignTask={handleAssignTask}
+                />
+              ))}
               </div>
             </div>
 

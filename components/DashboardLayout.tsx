@@ -7,7 +7,6 @@ import {
   HomeIcon,
   ClipboardDocumentListIcon,
   CogIcon,
-  ChartBarIcon,
   UserGroupIcon,
   Bars3Icon,
   XMarkIcon,
@@ -20,8 +19,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Tasks', href: '/dashboard/tasks', icon: ClipboardDocumentListIcon },
   { name: 'Agents', href: '/dashboard/agents', icon: UserGroupIcon },
-  { name: 'Integrations', href: '/dashboard/integrations', icon: CogIcon },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
+  { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
 ]
 
 interface DashboardLayoutProps {
