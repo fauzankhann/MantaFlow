@@ -175,9 +175,12 @@ export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { socket, isConnected } = useSocket()
-  const [tasks, setTasks] = useState(mockTasks)
-  const [agents, setAgents] = useState(mockAgents)
-  const [activity, setActivity] = useState(mockActivity)
+  
+  // Show mock data only for demo@example.com, otherwise start with empty state
+  const isDemoUser = session?.user?.email === 'demo@example.com'
+  const [tasks, setTasks] = useState(isDemoUser ? mockTasks : [])
+  const [agents, setAgents] = useState(isDemoUser ? mockAgents : [])
+  const [activity, setActivity] = useState(isDemoUser ? mockActivity : [])
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -278,7 +281,7 @@ export default function DashboardPage() {
                 {isConnected ? 'Connected' : 'Disconnected'}
               </span>
             </div>
-            <Link href="/dashboard/tasks/new" className="btn-primary">
+            <Link href="/dashboard/tasks/new" className="btn-primary flex items-center justify-center whitespace-nowrap">
               <PlusIcon className="h-5 w-5 mr-2" />
               New Task
             </Link>
@@ -340,7 +343,77 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Tasks Column */}
 <div className="lg:col-span-2 space-y-6">
-  {stats.activeTasks > 0 ? (
+  {agents.length === 0 ? (
+    // First-time user onboarding: No agents exist
+    <div className="card text-center py-16">
+      <div className="mx-auto w-16 h-16 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+        <CodeBracketIcon className="h-8 w-8 text-primary-600" />
+      </div>
+      <h3 className="text-2xl font-bold text-secondary-900 mb-2">Welcome to MantaFlow!</h3>
+      <p className="text-secondary-600 mb-8 max-w-md mx-auto">
+        Let's get you started. Create your first AI agent to automate your development workflow.
+      </p>
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+          <button className="btn-primary flex items-center justify-center whitespace-nowrap">
+            <PlusIcon className="h-5 w-5 mr-2" />
+            Create Your First Agent
+          </button>
+          <Link href="/dashboard/settings" className="btn-secondary flex items-center justify-center whitespace-nowrap">
+            <CogIcon className="h-5 w-5 mr-2" />
+            Connect Integrations
+          </Link>
+        </div>
+        <div className="max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
+            <div className="p-4 bg-secondary-50 rounded-lg">
+              <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
+                <CodeBracketIcon className="h-5 w-5 text-primary-600" />
+              </div>
+              <h4 className="font-semibold text-secondary-900 mb-1 text-sm">Create Agents</h4>
+              <p className="text-xs text-secondary-600">Set up AI agents to handle code reviews, bug fixes, and more</p>
+            </div>
+            <div className="p-4 bg-secondary-50 rounded-lg">
+              <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
+                <CogIcon className="h-5 w-5 text-primary-600" />
+              </div>
+              <h4 className="font-semibold text-secondary-900 mb-1 text-sm">Connect Tools</h4>
+              <p className="text-xs text-secondary-600">Integrate with Jira and GitHub for seamless workflow</p>
+            </div>
+            <div className="p-4 bg-secondary-50 rounded-lg">
+              <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center mb-3">
+                <BugAntIcon className="h-5 w-5 text-primary-600" />
+              </div>
+              <h4 className="font-semibold text-secondary-900 mb-1 text-sm">Automate Tasks</h4>
+              <p className="text-xs text-secondary-600">Let AI agents handle repetitive development tasks</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : tasks.length === 0 ? (
+    // User has agents but no tasks
+    <div className="card text-center py-12">
+      <div className="mx-auto w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
+        <PlusIcon className="h-6 w-6 text-primary-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-secondary-900 mb-2">No Tasks Yet</h3>
+      <p className="text-secondary-600 mb-6">
+        You have agents ready to work. Create your first task or connect to Jira/GitHub to sync tasks automatically.
+      </p>
+      <div className="flex flex-col sm:flex-row gap-3 justify-center">
+        <Link href="/dashboard/tasks/new" className="btn-primary flex items-center justify-center whitespace-nowrap">
+          <PlusIcon className="h-5 w-5 mr-2" />
+          Create Task
+        </Link>
+        <Link href="/dashboard/settings" className="btn-secondary flex items-center justify-center whitespace-nowrap">
+          <CogIcon className="h-5 w-5 mr-2" />
+          Connect Jira & GitHub
+        </Link>
+      </div>
+    </div>
+  ) : (
+    // User has tasks - show them
     <>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-secondary-900">Recent Tasks</h2>
@@ -355,26 +428,6 @@ export default function DashboardPage() {
         ))}
       </div>
     </>
-  ) : (
-    <div className="card text-center py-12">
-      <div className="mx-auto w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center mb-4">
-        <PlusIcon className="h-6 w-6 text-primary-600" />
-      </div>
-      <h3 className="text-lg font-semibold text-secondary-900 mb-2">No Active Tasks</h3>
-      <p className="text-secondary-600 mb-6">
-        Get started by connecting your development tools and creating your first task.
-      </p>
-      <div className="flex flex-col sm:flex-row gap-3 justify-center">
-        <Link href="/dashboard/settings" className="btn-primary">
-          <CogIcon className="h-5 w-5 mr-2" />
-          Connect Jira & GitHub
-        </Link>
-        <Link href="/dashboard/tasks/new" className="btn-secondary">
-          <PlusIcon className="h-5 w-5 mr-2" />
-          Create Task
-        </Link>
-      </div>
-    </div>
   )}
 </div>
 
@@ -382,25 +435,59 @@ export default function DashboardPage() {
           <div className="space-y-6">
             {/* Agent Status */}
             <div>
-              <h2 className="text-xl font-semibold text-secondary-900 mb-4">AI Agents</h2>
-              <div className="space-y-3">
-              {agents.map((agent) => (
-                <EnhancedAgentCard 
-                  key={agent.id} 
-                  agent={agent}
-                  onStartAgent={handleStartAgent}
-                  onStopAgent={handleStopAgent}
-                  onAssignTask={handleAssignTask}
-                />
-              ))}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-secondary-900">AI Agents</h2>
+                {agents.length > 0 && (
+                  <button className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+                    <PlusIcon className="h-4 w-4 inline mr-1" />
+                    Add Agent
+                  </button>
+                )}
               </div>
+              {agents.length === 0 ? (
+                <div className="card text-center py-8">
+                  <div className="mx-auto w-12 h-12 bg-secondary-100 rounded-lg flex items-center justify-center mb-3">
+                    <ShieldCheckIcon className="h-6 w-6 text-secondary-400" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-secondary-900 mb-2">No Agents Yet</h3>
+                  <p className="text-xs text-secondary-600 mb-4 px-4">
+                    Create your first AI agent to start automating tasks
+                  </p>
+                  <button className="btn-primary btn-sm flex items-center justify-center whitespace-nowrap">
+                    <PlusIcon className="h-4 w-4 mr-1" />
+                    Create Agent
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {agents.map((agent) => (
+                    <EnhancedAgentCard 
+                      key={agent.id} 
+                      agent={agent}
+                      onStartAgent={handleStartAgent}
+                      onStopAgent={handleStopAgent}
+                      onAssignTask={handleAssignTask}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Activity Feed */}
-            <div>
-              <h2 className="text-xl font-semibold text-secondary-900 mb-4">Recent Activity</h2>
-              <ActivityFeed activities={activity.slice(0, 5)} />
-            </div>
+            {agents.length > 0 && (
+              <div>
+                <h2 className="text-xl font-semibold text-secondary-900 mb-4">Recent Activity</h2>
+                {activity.length === 0 ? (
+                  <div className="card text-center py-8">
+                    <ClockIcon className="h-8 w-8 text-secondary-400 mx-auto mb-2" />
+                    <p className="text-sm text-secondary-600">No activity yet</p>
+                    <p className="text-xs text-secondary-500 mt-1">Start an agent to see activity</p>
+                  </div>
+                ) : (
+                  <ActivityFeed activities={activity.slice(0, 5)} />
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
