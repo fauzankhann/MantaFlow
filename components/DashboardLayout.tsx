@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { 
   HomeIcon,
   ClipboardDocumentListIcon,
@@ -29,6 +30,10 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const { data: session } = useSession()
+  
+  // Extract first name from user's full name
+  const firstName = session?.user?.name?.split(' ')[0] || 'User'
 
   return (
     <div className="min-h-screen bg-secondary-50">
@@ -160,7 +165,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <UserCircleIcon className="h-8 w-8 text-secondary-400" />
                 <span className="hidden lg:flex lg:items-center">
                   <span className="ml-2 text-sm font-semibold leading-6 text-secondary-900">
-                    John Doe
+                    {firstName}
                   </span>
                 </span>
               </div>
